@@ -53,7 +53,7 @@ const ModelViewParkingSession = (props: ModelViewParkingSessionProps) => {
       show={show}
       onHide={handleClose}
       backdrop="static"
-      className="model-parking-session"
+      className="model-parking-session model-parking-session--admin"
       size="lg"
     >
       <Modal.Header closeButton>

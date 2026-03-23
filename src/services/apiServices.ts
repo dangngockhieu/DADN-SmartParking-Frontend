@@ -142,6 +142,36 @@ export const changeDeviceMacForGate = (id: number, mac_address: string) => {
   return axios.patch(URL_BACKEND, data);
 }
 
+// ========== IoT Device API ==========
+export const getIoTDevices = (lot_id?: number | null, status?: string, keyword?: string) => {
+  const URL_BACKEND = '/api/v1/iot-devices';
+  return axios.get(URL_BACKEND, {
+    params: {
+      lot_id: lot_id ?? undefined,
+      status: status || undefined,
+      keyword: keyword?.trim() || undefined,
+    },
+  });
+}
+
+export const createIoTDevice = (data: {
+  mac_address: string;
+  device_name: string;
+  lot_id: number | null;
+}) => {
+  const URL_BACKEND = '/api/v1/iot-devices';
+  return axios.post(URL_BACKEND, data);
+}
+
+export const updateIoTDevice = (mac_address: string, data: {
+  device_name?: string;
+  status?: "ACTIVE" | "INACTIVE" | "ERROR";
+  lot_id?: number | null;
+}) => {
+  const URL_BACKEND = `/api/v1/iot-devices/${encodeURIComponent(mac_address)}`;
+  return axios.patch(URL_BACKEND, data);
+}
+
 // ========== RFID Card API ==========
 export const getMyRfidCard = () => {
   const URL_BACKEND = '/api/v1/rfid-cards/my-cards';

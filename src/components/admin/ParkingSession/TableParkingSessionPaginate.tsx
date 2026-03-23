@@ -108,7 +108,7 @@ const TableParkingSessionPaginate = (
             ))
           ) : (
             <tr>
-              <td colSpan={7} className="text-center">
+              <td colSpan={8} className="text-center">
                 Không có phiên gửi xe
               </td>
             </tr>

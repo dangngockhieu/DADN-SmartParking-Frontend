@@ -18,6 +18,7 @@ import ManageParkingSession from './components/admin/ParkingSession/ManageParkin
 import ManagerUser from './components/admin/ManageUser/ManagerUser.js';
 import ManageCard from './components/admin/ManageCard/ManageCard.js';
 import ManageLot from './components/admin/ManageLot/ManageLot.js';
+import ManageDevice from './components/admin/ManageDevice/ManageDevice.js';
 
 const App = () => {
   return (
@@ -30,6 +31,7 @@ const App = () => {
           <Route path="users" element={<ManagerUser />} />
           <Route path="cards" element={<ManageCard />} />
           <Route path="parking_areas" element={<ManageLot />} />
+          <Route path="devices" element={<ManageDevice />} />
         </Route>
 
         <Route path="/user" element={<PrivateRoute><UserLayout /></PrivateRoute>}>
