@@ -56,7 +56,7 @@ export const updateMyProfile = (first_name: string, last_name: string) => {
 }
 
 export const getUserWithPaginate = (page: number, pageSize: number, search: string) => {
-  const URL_BACKEND = '/api/v1/users';
+  const URL_BACKEND = '/api/v1/users/user-pagination';
   return axios.get(URL_BACKEND, { params: { page, pageSize, search } });
 }
 

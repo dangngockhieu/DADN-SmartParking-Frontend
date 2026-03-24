@@ -154,10 +154,13 @@
   }
 
   .parking-session-form {
+    width: 100%;
+
     .row-group {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      width: 100%;
+      gap: 16px 20px;
 
       .form-group.full {
         grid-column: 1 / -1;
@@ -165,6 +168,8 @@
     }
 
     .form-group {
+      width: 100%;
+      min-width: 0;
       margin-bottom: 16px;
 
       label {
@@ -177,6 +182,7 @@
 
       input {
         height: 42px;
+        width: 100%;
         border-radius: 10px;
         font-size: 14px;
       }
@@ -184,6 +190,11 @@
       &.full {
         width: 100%;
       }
+    }
+
+    .form-group .form-control {
+      width: 100%;
+      min-width: 0;
     }
   }
 
@@ -196,3 +207,4 @@
     }
   }
 }
+
