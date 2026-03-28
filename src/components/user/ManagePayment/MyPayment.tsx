@@ -8,44 +8,17 @@ import {
   getTransactionHistory,
 } from "../../../services/apiServices";
 
+import type {
+      WalletInfo,
+      WalletTransaction,
+      WalletCursor,
+      TransactionResponse,
+      TransactionGroup }
+  from "../../../interfaces";
+
 import "./MyPayment.scss";
 
-type WalletInfo = {
-  money?: number;
-  balance?: number;
-};
 
-type WalletTransaction = {
-  id: number;
-  userId?: number;
-  type: "DEPOSIT" | "DEDUCT";
-  amount: number;
-  balanceBefore: number;
-  balanceAfter: number;
-  status: "PENDING" | "SUCCESS" | "FAILED" | "CANCELED";
-  orderCode?: number;
-  transactionId?: string;
-  description?: string;
-  createdAt: string;
-  updatedAt?: string;
-};
-
-type WalletCursor = {
-  createdAt: string;
-  id: number;
-};
-
-type TransactionResponse = {
-  data: WalletTransaction[];
-  nextCursor: WalletCursor | null;
-  hasNextPage: boolean;
-};
-
-type TransactionGroup = {
-  dateKey: string;
-  dateLabel: string;
-  items: WalletTransaction[];
-};
 
 type ApiError = {
   response?: {
