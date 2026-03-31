@@ -200,6 +200,42 @@ const ParkingLotStatus = () => {
         });
     }, [applySlotAnimation]);
 
+    const updateSlotStatusBatch = useCallback((items: SlotStatusChangeData[]) => {
+        const changed = items.filter((item) => item.changed);
+        if (changed.length === 0) return;
+
+        setLotDetail((prev) => {
+            if (!prev) return prev;
+
+            const statusMap = new Map<number, SlotStatusChangeData>();
+            for (const item of changed) {
+                if (item.lot_id === prev.id) {
+                    statusMap.set(item.id, item);
+                }
+            }
+
+            if (statusMap.size === 0) return prev;
+
+            const nextSlots = prev.slots.map((slot) => {
+                const update = statusMap.get(slot.id);
+                if (!update) return slot;
+
+                return {
+                    ...slot,
+                    status: update.new_status,
+                };
+            });
+
+            applySlotAnimation(nextSlots);
+
+            return {
+                ...prev,
+                slots: nextSlots,
+                stats: buildStatsFromSlots(nextSlots),
+            };
+        });
+    }, [applySlotAnimation]);
+
     const handleLogout = async () => {
         try {
             await logout();
@@ -263,12 +299,16 @@ const ParkingLotStatus = () => {
             if (message.event === "SLOT_STATUS_CHANGE") {
                 updateSlotStatusRealtime(message.data);
             }
+
+            if (message.event === "SLOT_STATUS_CHANGE_BATCH") {
+                updateSlotStatusBatch(message.data);
+            }
         });
 
         return () => {
             disconnect();
         };
-    }, [selectedLotId, updateSlotStatusRealtime]);
+    }, [selectedLotId, updateSlotStatusRealtime, updateSlotStatusBatch]);
 
     const activeLotDetail =
         lotDetail && selectedLotId !== null && lotDetail.id === selectedLotId
