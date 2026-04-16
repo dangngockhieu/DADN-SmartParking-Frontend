@@ -6,3 +6,4 @@
 - Add validation for guest checkout form
 - Refactor parking status badge component
 - Optimize API call for slot availability
+- Fix typo in navigation menu
