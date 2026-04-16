@@ -7,3 +7,4 @@
 - Refactor parking status badge component
 - Optimize API call for slot availability
 - Fix typo in navigation menu
+- Update dependencies for build tools
