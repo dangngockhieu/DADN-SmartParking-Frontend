@@ -8,3 +8,4 @@
 - Optimize API call for slot availability
 - Fix typo in navigation menu
 - Update dependencies for build tools
+- Add loading skeleton for revenue chart
