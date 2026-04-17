@@ -9,3 +9,4 @@
 - Fix typo in navigation menu
 - Update dependencies for build tools
 - Add loading skeleton for revenue chart
+- Improve error handling in login flow
