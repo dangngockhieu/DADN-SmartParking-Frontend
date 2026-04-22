@@ -14,3 +14,4 @@
 - Update color scheme for warning alerts
 - Add tooltip for parking slot details
 - Fix pagination bug in history page
+- Improve accessibility for form inputs
