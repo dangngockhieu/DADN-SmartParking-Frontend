@@ -16,3 +16,4 @@
 - Fix pagination bug in history page
 - Improve accessibility for form inputs
 - Update footer links
+- Fix date formatting in booking summary
