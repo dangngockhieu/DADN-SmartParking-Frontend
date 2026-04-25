@@ -17,3 +17,4 @@
 - Improve accessibility for form inputs
 - Update footer links
 - Fix date formatting in booking summary
+- Add confirmation modal for cancel booking
