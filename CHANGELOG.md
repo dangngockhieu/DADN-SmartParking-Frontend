@@ -19,3 +19,4 @@
 - Fix date formatting in booking summary
 - Add confirmation modal for cancel booking
 - Improve performance of slot list rendering
+- Fix session timeout handling
