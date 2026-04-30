@@ -20,3 +20,4 @@
 - Add confirmation modal for cancel booking
 - Improve performance of slot list rendering
 - Fix session timeout handling
+- Update icons for status indicators
