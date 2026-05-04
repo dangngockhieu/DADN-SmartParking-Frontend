@@ -11,8 +11,8 @@ import ResetPassword from "./pages/resetPassword.js";
 import WelcomePage from './components/WelcomePage.js';
 import ParkingLotStatus from './components/share/ParkingLotStatus.js';
 import ChangePassword from './pages/changePassword.js';
-// import UserLayout from './components/user/UserLayout.js';
-// import MyProfile from './components/user/MyProfile/MyProfile.js';
+import UserLayout from './components/user/UserLayout.js';
+import MyProfile from './components/user/MyProfile/MyProfile.js';
 
 // import LandingPage from './components/user/Product/LandingPage.js';
 // import Product from './components/user/Product/Product.js';
@@ -52,12 +52,12 @@ const App = () => {
           <Route path="users" element={<ManagerUser />} />
         </Route> */}
 
-        {/* <Route path="/user" element={<PrivateRoute><UserLayout /></PrivateRoute>}>
-          <Route index element={<MyProfile />} /> */}
+        <Route path="/user" element={<PrivateRoute><UserLayout /></PrivateRoute>}>
+          <Route index element={<MyProfile />} />
           {/* <Route path="products" element={<ManageProduct />} />
           <Route path="orders" element={<ManageOrder />} />
           <Route path="users" element={<ManagerUser />} /> */}
-        {/* </Route> */}
+        </Route>
         <Route path="/" element={<WelcomePage />} />
         <Route path="/parking-status" element={<PrivateRoute><ParkingLotStatus /></PrivateRoute>} />
         <Route path="/change-password" element={<PrivateRoute><ChangePassword /></PrivateRoute>} />
