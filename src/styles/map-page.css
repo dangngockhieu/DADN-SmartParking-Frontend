@@ -43,6 +43,19 @@ body {
   padding-top: 80px;
 }
 
+.map-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100vh;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  padding-top: 0;
+}
+
 .map-container {
   width: 600px;
   height: 320px;

@@ -54,6 +54,7 @@ function Register() {
 		} catch (error) {
 			const serverErrors = error?.response?.data?.errors
 			const serverMessage = error?.response?.data?.message
+			console.log('Đăng ký lỗi:', error)
 			setFeedback({
 				type: 'is-error',
 				message:

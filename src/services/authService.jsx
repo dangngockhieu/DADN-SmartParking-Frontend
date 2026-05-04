@@ -1,6 +1,6 @@
 import axios from 'axios'
 import instance from '../utils/axiosInterceptor';
-const URL_BACKEND = `/auth`
+const URL_BACKEND = '/auth'
 
 /**
  * @template T
@@ -59,7 +59,7 @@ const URL_BACKEND = `/auth`
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<null>>>} Response chuẩn của server với `data = null`.
  */
 export const register = (payload) => {
-	return axios.post(`${URL_BACKEND}/register`, payload)
+	return instance.post(`${URL_BACKEND}/register`, payload)
 }
 
 /**
@@ -70,7 +70,7 @@ export const register = (payload) => {
  * @returns {Promise<import('axios').AxiosResponse<string>>} HTML trang xác thực từ server.
  */
 export const verifyEmail = (email, code) => {
-	return axios.get(`${URL_BACKEND}/verify`, {
+	return instance.get(`${URL_BACKEND}/verify`, {
 		params: { email, code },
 	})
 }
@@ -82,7 +82,7 @@ export const verifyEmail = (email, code) => {
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<null>>>} Response chuẩn của server với `data = null`.
  */
 export const resendVerification = (payload) => {
-	return axios.post(`${URL_BACKEND}/resend`, payload)
+	return instance.post(`${URL_BACKEND}/resend`, payload)
 }
 
 /**
@@ -114,7 +114,8 @@ export const logout = () => {
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<LoginResponse>>>} Response chuẩn với `data.access_token` và `data.user`.
  */
 export const refreshToken = () => {
-	return instance.post(`${URL_BACKEND}/refresh-token`, null, {
+	const FULL_URL = `${import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'}/api/v1/auth/refresh-token`;
+	return axios.post(`${FULL_URL}`, null, {
 		withCredentials: true,
 	})
 }
@@ -136,7 +137,7 @@ export const sendResetPassword = (payload) => {
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<null>>>} Response chuẩn của server với `data = null`.
  */
 export const resetPassword = (payload) => {
-	return axios.patch(`${URL_BACKEND}/reset-password`, payload)
+	return instance.patch(`${URL_BACKEND}/reset-password`, payload)
 }
 
 const authService = {

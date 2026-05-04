@@ -10,7 +10,7 @@ import ChangePassword from './pages/ChangePassword'
 import ErrorPage from './pages/Error'
 import AuthLayout from './layouts/AuthLayouts'
 import MainLayout from './layouts/MainLayouts'
-import RequireAuth from './components/RequireAuth'
+import RequireAuth from './layouts/RequireAuth'
 
 const router = createBrowserRouter([
   {

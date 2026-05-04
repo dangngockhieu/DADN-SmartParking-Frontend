@@ -104,7 +104,7 @@ function ResetVerify() {
 								id="verify-code"
 								type="text"
 								className="input-field"
-								placeholder="Nhập mã 6 ký tự"
+								placeholder="Nhập mã xác thực"
 								value={code}
 								onChange={(event) => setCode(event.target.value)}
 								required

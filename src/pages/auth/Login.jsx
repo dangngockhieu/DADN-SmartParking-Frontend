@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { login } from '../../services/authService'
+import { setAccessToken } from '../../utils/axiosInterceptor'
 import '../../styles/auth-pages.css'
 
 const initialForm = {
@@ -40,6 +41,16 @@ function Login() {
 			})
 			const apiData = response?.data
 			if (apiData?.success) {
+				const accessToken = apiData?.data?.access_token
+
+				if (!accessToken) {
+					setFeedback({
+						type: 'is-error',
+						message: 'Thiếu access token từ server, vui lòng thử lại.',
+					})
+					return
+				}
+				setAccessToken(accessToken)
 				setFeedback({ type: 'is-success', message: apiData.message || 'Đăng nhập thành công.' })
 				navigate('/map')
 				return

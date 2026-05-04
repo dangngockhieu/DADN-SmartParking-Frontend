@@ -1,6 +1,6 @@
-import axios from 'axios'
+import instance from '../utils/axiosInterceptor';
+const URL_BACKEND = `${import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'}/api/v1`
 
-const URL_BACKEND = ``
 
 /**
  * @template T
@@ -147,7 +147,7 @@ const URL_BACKEND = ``
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<ParkingLotResponse[]>>>} Response chứa danh sách bãi đỗ.
  */
 export const getParkingLots = () => {
-	return axios.get(`${URL_BACKEND}/parking-lots`)
+	return instance.get(`${URL_BACKEND}/parking-lots`)
 }
 
 /**
@@ -157,7 +157,7 @@ export const getParkingLots = () => {
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<ParkingLotDetailResponse>>>} Response chứa dữ liệu chi tiết bãi đỗ.
  */
 export const getParkingLotById = (lotId) => {
-	return axios.get(`${URL_BACKEND}/parking-lots/${lotId}`)
+	return instance.get(`${URL_BACKEND}/parking-lots/${lotId}`)
 }
 
 /**
@@ -167,7 +167,7 @@ export const getParkingLotById = (lotId) => {
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<ParkingLotResponse>>>} Response chứa bãi đỗ vừa tạo.
  */
 export const createParkingLot = (payload) => {
-	return axios.post(`${URL_BACKEND}/parking-lots`, payload)
+	return instance.post(`${URL_BACKEND}/parking-lots`, payload)
 }
 
 /**
@@ -178,7 +178,7 @@ export const createParkingLot = (payload) => {
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<ParkingLotResponse>>>} Response chứa bãi đỗ sau cập nhật.
  */
 export const updateParkingLot = (lotId, payload) => {
-	return axios.put(`${URL_BACKEND}/parking-lots/${lotId}`, payload)
+	return instance.put(`${URL_BACKEND}/parking-lots/${lotId}`, payload)
 }
 
 /**
@@ -188,7 +188,7 @@ export const updateParkingLot = (lotId, payload) => {
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<ParkingLotGateResponse[]>>>} Response chứa danh sách cổng.
  */
 export const getParkingLotGates = (lotId) => {
-	return axios.get(`${URL_BACKEND}/parking-lots/${lotId}/gates`)
+	return instance.get(`${URL_BACKEND}/parking-lots/${lotId}/gates`)
 }
 
 /**
@@ -198,7 +198,7 @@ export const getParkingLotGates = (lotId) => {
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<GateResponse>>>} Response chứa thông tin cổng mới.
  */
 export const createGate = (payload) => {
-	return axios.post(`${URL_BACKEND}/gates`, payload)
+	return instance.post(`${URL_BACKEND}/gates`, payload)
 }
 
 /**
@@ -208,7 +208,7 @@ export const createGate = (payload) => {
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<GateResponse>>>} Response chứa thông tin cổng.
  */
 export const getGateById = (gateId) => {
-	return axios.get(`${URL_BACKEND}/gates/${gateId}`)
+	return instance.get(`${URL_BACKEND}/gates/${gateId}`)
 }
 
 /**
@@ -219,7 +219,7 @@ export const getGateById = (gateId) => {
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<GateResponse>>>} Response chứa thông tin cổng sau cập nhật.
  */
 export const updateGate = (gateId, payload) => {
-	return axios.put(`${URL_BACKEND}/gates/${gateId}`, payload)
+	return instance.put(`${URL_BACKEND}/gates/${gateId}`, payload)
 }
 
 /**
@@ -229,7 +229,7 @@ export const updateGate = (gateId, payload) => {
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<null>>>} Response chuẩn với `data = null`.
  */
 export const deleteGate = (gateId) => {
-	return axios.delete(`${URL_BACKEND}/gates/${gateId}`)
+	return instance.delete(`${URL_BACKEND}/gates/${gateId}`)
 }
 
 /**
@@ -239,7 +239,7 @@ export const deleteGate = (gateId) => {
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<ParkingLotSlotResponse>>>} Response chứa vị trí đỗ vừa tạo.
  */
 export const createParkingSlot = (payload) => {
-	return axios.post(`${URL_BACKEND}/parking-slots`, payload)
+	return instance.post(`${URL_BACKEND}/parking-slots`, payload)
 }
 
 /**
@@ -249,7 +249,7 @@ export const createParkingSlot = (payload) => {
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<ParkingLotSlotResponse>>>} Response chứa thông tin vị trí đỗ.
  */
 export const getParkingSlotById = (slotId) => {
-	return axios.get(`${URL_BACKEND}/parking-slots/${slotId}`)
+	return instance.get(`${URL_BACKEND}/parking-slots/${slotId}`)
 }
 
 /**
@@ -260,7 +260,7 @@ export const getParkingSlotById = (slotId) => {
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<null>>>} Response chuẩn với `data = null`.
  */
 export const updateParkingSlotDevice = (slotId, payload) => {
-	return axios.put(`${URL_BACKEND}/parking-slots/${slotId}/device`, payload)
+	return instance.put(`${URL_BACKEND}/parking-slots/${slotId}/device`, payload)
 }
 
 /**
@@ -271,7 +271,7 @@ export const updateParkingSlotDevice = (slotId, payload) => {
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<UpdateSlotStatusResponse>>>} Response chứa kết quả cập nhật trạng thái.
  */
 export const updateParkingSlotStatus = (slotId, payload) => {
-	return axios.patch(`${URL_BACKEND}/parking-slots/${slotId}/status`, payload)
+	return instance.patch(`${URL_BACKEND}/parking-slots/${slotId}/status`, payload)
 }
 
 /**
@@ -281,7 +281,7 @@ export const updateParkingSlotStatus = (slotId, payload) => {
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<UpdateSlotStatusResponse>>>} Response chứa kết quả cập nhật trạng thái.
  */
 export const sensorUpdateSlotStatus = (payload) => {
-	return axios.patch(`${URL_BACKEND}/parking-slots/sensor/status`, payload)
+	return instance.patch(`${URL_BACKEND}/parking-slots/sensor/status`, payload)
 }
 
 /**
@@ -291,8 +291,9 @@ export const sensorUpdateSlotStatus = (payload) => {
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<SlotHistoryResponse[]>>>} Response chứa danh sách lịch sử.
  */
 export const getSlotHistory = (slotId) => {
-	return axios.get(`${URL_BACKEND}/parking-slots/${slotId}/history`)
+	return instance.get(`${URL_BACKEND}/parking-slots/${slotId}/history`)
 }
+
 
 const mapService = {
 	getParkingLots,
