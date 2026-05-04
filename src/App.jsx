@@ -10,6 +10,7 @@ import ChangePassword from './pages/ChangePassword'
 import ErrorPage from './pages/Error'
 import AuthLayout from './layouts/AuthLayouts'
 import MainLayout from './layouts/MainLayouts'
+import RequireAuth from './components/RequireAuth'
 
 const router = createBrowserRouter([
   {
@@ -24,7 +25,7 @@ const router = createBrowserRouter([
     ]
   },
   {
-    element: <MainLayout />, // Layout chính cho các trang khác, cần đăng nhập xong thì mới vào được
+    element: <RequireAuth><MainLayout /></RequireAuth>, // Protected layout
     children: [
       { path: '/map', element: <Map /> },
       { path: '/change-password', element: <ChangePassword /> },
