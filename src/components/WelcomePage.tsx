@@ -65,21 +65,21 @@ const WelcomePage = () => {
   const isAdmin = isAuthenticated && role === 'ADMIN';
 
   const quickActions: QuickAction[] = !isAuthenticated
-  ? [
+    ? [
       { to: '/login', label: 'Đăng nhập', type: 'secondary' },
       { to: '/register', label: 'Đăng ký', type: 'primary' },
     ]
-  : [
+    : [
       { to: '/parking-status', label: 'Trạng thái bãi đỗ', type: 'secondary' },
       { to: '/user', label: 'Trang cá nhân', type: isAdmin ? 'secondary' : 'primary' },
       ...(isAdmin
         ? [
-            {
-              to: '/admin',
-              label: 'Quản trị hệ thống',
-              type: 'primary',
-            } as QuickAction,
-          ]
+          {
+            to: '/admin',
+            label: 'Quản trị hệ thống',
+            type: 'primary',
+          } as QuickAction,
+        ]
         : []),
     ];
 
@@ -108,7 +108,7 @@ const WelcomePage = () => {
             <span className="hero-badge">🚀 Giải pháp đỗ xe thế hệ mới</span>
             <h1>
               Quản lý bãi đỗ xe <br />
-              <span className="gradient-text">thông minh & hiện đại</span>
+              <span className="gradient-text">thông minh</span>
             </h1>
             <p>
               Smart Parking giúp bạn theo dõi, vận hành và tối ưu toàn bộ bãi đỗ
@@ -120,7 +120,7 @@ const WelcomePage = () => {
           <div className="hero-image-wrap">
             <img
               src="https://images.unsplash.com/photo-1506521781263-d8422e82f27a?w=700&q=80"
-              alt="Bãi đỗ xe hiện đại"
+              alt="Bãi đỗ xe thông minh"
               className="hero-image"
             />
             <div className="hero-image-badge">

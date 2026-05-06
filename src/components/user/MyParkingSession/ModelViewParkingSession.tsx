@@ -121,9 +121,11 @@ const ModelViewParkingSession = (props: ModelViewParkingSessionProps) => {
             </div>
           </div>
 
-          <div className="form-group full">
-            <label>Phí gửi xe</label>
-            <input className="form-control" value={session.fee} disabled />
+          <div className="row-group">
+            <div className="form-group">
+              <label>Phí gửi xe</label>
+              <input className="form-control" value={session.fee} disabled />
+            </div>
           </div>
         </form>
       </Modal.Body>

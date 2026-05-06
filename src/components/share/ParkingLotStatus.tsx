@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./ParkingLotStatus.scss";
 import BlueCarTopView from "../../assets/BlueCarTopView.svg";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
+import { connectParkingRealtime } from "../../realtimes/parkingRealtime";
 
 import type {
     Lot,
@@ -11,11 +12,14 @@ import type {
     SlotStatus,
 } from "../../interfaces";
 
+import type { SlotStatusChangeData } from "../../realtimes/realtime-events";
+
 import {
     getAllLot,
     getLotDetail,
-    logout
+    logout,
 } from "../../services/apiServices";
+
 import { doLogout } from "../../redux/slices/userSlice";
 import { FaHome, FaRegUser, FaCog } from "react-icons/fa";
 import { FiLogOut } from "react-icons/fi";
@@ -48,13 +52,21 @@ const getStatusClass = (status: SlotStatus) => {
     }
 };
 
+const buildStatsFromSlots = (slots: ParkingSlot[]) => {
+    return {
+        total: slots.length,
+        available: slots.filter((slot) => slot.status === "AVAILABLE").length,
+        occupied: slots.filter((slot) => slot.status === "OCCUPIED").length,
+        maintain: slots.filter((slot) => slot.status === "MAINTAIN").length,
+    };
+};
+
 const ParkingLotStatus = () => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
     const { account } = useAppSelector((state) => state.user);
     const isAdmin = account?.role?.toUpperCase() === "ADMIN";
 
-    // Quản lý trạng thái mở menu
     const [showMenu, setShowMenu] = useState(false);
     const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -67,57 +79,15 @@ const ParkingLotStatus = () => {
     const [refreshing, setRefreshing] = useState(false);
 
     const previousSlotsRef = useRef<Record<number, SlotStatus>>({});
+    const animationTimerRef = useRef<number | null>(null);
+
     const [slotAnimations, setSlotAnimations] = useState<
         Record<number, SlotAnimation>
     >({});
 
     const currentTime = useCurrentTime();
 
-    const fetchLots = async () => {
-        try {
-        setLoadingLots(true);
-
-        const res = await getAllLot();
-        const json = res.data;
-
-        if (json.success) {
-            const lotList: Lot[] = json.data || [];
-            setLots(lotList);
-
-            if (lotList.length > 0) {
-                setSelectedLotId(lotList[0].id);
-            }
-        }
-        } catch (error) {
-            console.error("Fetch lots error:", error);
-        } finally {
-            setLoadingLots(false);
-        }
-    };
-
-    const fetchLotDetail = async (lotId: number, silent = false) => {
-        try {
-        if (!silent) setLoadingDetail(true);
-        setRefreshing(true);
-
-        const res = await getLotDetail(lotId);
-        const json = res.data;
-
-        if (json.success) {
-            const nextDetail: ParkingLotDetail = json.data;
-
-            applySlotAnimation(nextDetail.slots);
-            setLotDetail(nextDetail);
-        }
-        } catch (error) {
-            console.error("Fetch lot detail error:", error);
-        } finally {
-            setLoadingDetail(false);
-            setRefreshing(false);
-        }
-    };
-
-    const applySlotAnimation = (newSlots: ParkingSlot[]) => {
+    const applySlotAnimation = useCallback((newSlots: ParkingSlot[]) => {
         const previousSlots = previousSlotsRef.current;
         const nextAnimations: Record<number, SlotAnimation> = {};
 
@@ -146,39 +116,128 @@ const ParkingLotStatus = () => {
 
         setSlotAnimations(nextAnimations);
 
-        window.setTimeout(() => {
+        if (animationTimerRef.current) {
+            window.clearTimeout(animationTimerRef.current);
+        }
+
+        animationTimerRef.current = window.setTimeout(() => {
             setSlotAnimations({});
+            animationTimerRef.current = null;
         }, 950);
-    };
+    }, []);
+
+    const fetchLots = useCallback(async () => {
+        try {
+            setLoadingLots(true);
+
+            const res = await getAllLot();
+            const json = res.data;
+
+            if (json.success) {
+                const lotList: Lot[] = json.data || [];
+
+                setLots(lotList);
+
+                if (lotList.length > 0) {
+                    setSelectedLotId((prev) => prev ?? lotList[0].id);
+                }
+            }
+        } catch (error) {
+            console.error("Fetch lots error:", error);
+        } finally {
+            setLoadingLots(false);
+        }
+    }, []);
+
+    const fetchLotDetail = useCallback(async (lotId: number, silent = false) => {
+        try {
+            if (!silent) setLoadingDetail(true);
+            setRefreshing(true);
+
+            const res = await getLotDetail(lotId);
+            const json = res.data;
+
+            if (json.success) {
+                const nextDetail: ParkingLotDetail = json.data;
+
+                if (nextDetail.id !== lotId) return;
+
+                applySlotAnimation(nextDetail.slots);
+                setLotDetail(nextDetail);
+            }
+        } catch (error) {
+            console.error("Fetch lot detail error:", error);
+        } finally {
+            setLoadingDetail(false);
+            setRefreshing(false);
+        }
+    }, [applySlotAnimation]);
+
+    const updateSlotStatusRealtime = useCallback((data: SlotStatusChangeData) => {
+        if (!data.changed) return;
+
+        setLotDetail((prev) => {
+            if (!prev) return prev;
+            if (prev.id !== data.lot_id) return prev;
+
+            const nextSlots = prev.slots.map((slot) => {
+                if (slot.id !== data.id) return slot;
+
+                return {
+                    ...slot,
+                    status: data.new_status,
+                };
+            });
+
+            applySlotAnimation(nextSlots);
+
+            return {
+                ...prev,
+                slots: nextSlots,
+                stats: buildStatsFromSlots(nextSlots),
+            };
+        });
+    }, [applySlotAnimation]);
 
     const handleLogout = async () => {
         try {
-            await logout(); // Gọi API xóa cookie/session
+            await logout();
         } catch (err) {
-            console.error('Logout request failed', err);
+            console.error("Logout request failed", err);
         }
-        dispatch(doLogout()); // Xóa state trong Redux
+
+        dispatch(doLogout());
         setShowMenu(false);
-        navigate('/login');
+        navigate("/login");
     };
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-        if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-            setShowMenu(false);
-        }
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setShowMenu(false);
+            }
         };
+
         document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
     }, []);
 
     useEffect(() => {
-    const timer = window.setTimeout(() => {
-        fetchLots();
-    }, 0);
+        const timer = window.setTimeout(() => {
+            void fetchLots();
+        }, 0);
 
-        return () => window.clearTimeout(timer);
-    }, []);
+        return () => {
+            window.clearTimeout(timer);
+
+            if (animationTimerRef.current) {
+                window.clearTimeout(animationTimerRef.current);
+            }
+        };
+    }, [fetchLots]);
 
     useEffect(() => {
         if (selectedLotId === null) return;
@@ -186,40 +245,45 @@ const ParkingLotStatus = () => {
         previousSlotsRef.current = {};
 
         const timer = window.setTimeout(() => {
-            setLotDetail(null);
-            fetchLotDetail(selectedLotId);
+            void fetchLotDetail(selectedLotId);
         }, 0);
 
-        return () => window.clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedLotId]);
+        return () => {
+            window.clearTimeout(timer);
+        };
+    }, [selectedLotId, fetchLotDetail]);
 
     useEffect(() => {
         if (selectedLotId === null) return;
 
-        const timer = window.setInterval(() => {
-            fetchLotDetail(selectedLotId, true);
-        }, 5000);
+        const disconnect = connectParkingRealtime(selectedLotId, (message) => {
+            console.log("[WT] message:", message);
 
-        return () => window.clearInterval(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedLotId]);
+            if (message.event === "SLOT_STATUS_CHANGE") {
+                updateSlotStatusRealtime(message.data);
+            }
+        });
+
+        return () => {
+            disconnect();
+        };
+    }, [selectedLotId, updateSlotStatusRealtime]);
 
     const activeLotDetail =
-        lotDetail && selectedLotId && lotDetail.id === selectedLotId
-        ? lotDetail
-        : null;
+        lotDetail && selectedLotId !== null && lotDetail.id === selectedLotId
+            ? lotDetail
+            : null;
 
     const selectedLot = lots.find((lot) => lot.id === selectedLotId);
 
     const stats = useMemo(() => {
         if (!activeLotDetail) {
-        return {
-            total: 0,
-            available: 0,
-            occupied: 0,
-            maintain: 0,
-        };
+            return {
+                total: 0,
+                available: 0,
+                occupied: 0,
+                maintain: 0,
+            };
         }
 
         return activeLotDetail.stats;
@@ -254,23 +318,26 @@ const ParkingLotStatus = () => {
                 </span>
 
                 <div className="avatar-container">
-                    {/* Nút Avatar */}
                     <button
                         onClick={() => setShowMenu((prev) => !prev)}
                         className="avatar-btn"
                     >
                         <img
-                            src={`https://ui-avatars.com/api/?name=${account?.first_name + " " + account?.last_name || "User"}&background=35b9f3&color=fff`}
+                            src={`https://ui-avatars.com/api/?name=${
+                                account?.first_name + " " + account?.last_name || "User"
+                            }&background=35b9f3&color=fff`}
                             alt="Avatar"
                             className="img"
                         />
                     </button>
 
-                    {/* Dropdown Menu */}
                     {showMenu && (
                         <div className="dropdown-menu">
                             <button
-                                onClick={() => { setShowMenu(false); navigate("/"); }}
+                                onClick={() => {
+                                    setShowMenu(false);
+                                    navigate("/");
+                                }}
                                 className="dropdown-item"
                             >
                                 <FaHome className="dropdown-icon icon1" />
@@ -278,7 +345,10 @@ const ParkingLotStatus = () => {
                             </button>
 
                             <button
-                                onClick={() => { setShowMenu(false); navigate("/user"); }}
+                                onClick={() => {
+                                    setShowMenu(false);
+                                    navigate("/user");
+                                }}
                                 className="dropdown-item"
                             >
                                 <FaRegUser className="dropdown-icon icon2" />
@@ -287,7 +357,10 @@ const ParkingLotStatus = () => {
 
                             {isAdmin && (
                                 <button
-                                    onClick={() => { setShowMenu(false); navigate("/admin"); }}
+                                    onClick={() => {
+                                        setShowMenu(false);
+                                        navigate("/admin");
+                                    }}
                                     className="dropdown-item"
                                 >
                                     <FaCog className="dropdown-icon icon3" />
@@ -321,19 +394,25 @@ const ParkingLotStatus = () => {
 
                     <select
                         value={selectedLotId ?? ""}
-                        onChange={(e) => setSelectedLotId(Number(e.target.value))}
+                        onChange={(e) => {
+                            const nextLotId = Number(e.target.value);
+
+                            if (!Number.isNaN(nextLotId)) {
+                                setSelectedLotId(nextLotId);
+                            }
+                        }}
                         disabled={loadingLots}
                     >
                         {lots.length === 0 && (
-                        <option value="">
-                            {loadingLots ? "Đang tải bãi đỗ..." : "Không có bãi đỗ"}
-                        </option>
+                            <option value="">
+                                {loadingLots ? "Đang tải bãi đỗ..." : "Không có bãi đỗ"}
+                            </option>
                         )}
 
                         {lots.map((lot) => (
-                        <option key={lot.id} value={lot.id}>
-                            {lot.id} - {lot.name} - {lot.location}
-                        </option>
+                            <option key={lot.id} value={lot.id}>
+                                {lot.id} - {lot.name} - {lot.location}
+                            </option>
                         ))}
                     </select>
                 </div>
@@ -382,8 +461,8 @@ const ParkingLotStatus = () => {
 
                     <div className="overview-card overview-card--maintenance">
                         <div>
-                        <p>Bảo trì</p>
-                        <strong>{stats.maintain}</strong>
+                            <p>Bảo trì</p>
+                            <strong>{stats.maintain}</strong>
                         </div>
                         <CircularProgress percent={maintainPercent} />
                     </div>
@@ -404,7 +483,7 @@ const ParkingLotStatus = () => {
                             className={`refresh-btn ${refreshing ? "is-spinning" : ""}`}
                             onClick={() => {
                                 if (selectedLotId !== null) {
-                                fetchLotDetail(selectedLotId);
+                                    fetchLotDetail(selectedLotId);
                                 }
                             }}
                             disabled={selectedLotId === null}
@@ -428,38 +507,47 @@ const ParkingLotStatus = () => {
                                     <div className="slot-top">
                                         <span className="slot-name">{slot.name}</span>
                                         <span className="slot-status">
-                                        {getStatusLabel(status)}
+                                            {getStatusLabel(status)}
                                         </span>
                                     </div>
 
                                     {status === "MAINTAIN" && (
-                                        <div className="warning-corner" title="Ô đang bảo trì" />
+                                        <div
+                                            className="warning-corner"
+                                            title="Ô đang bảo trì"
+                                        />
                                     )}
 
                                     <div className="slot-content">
                                         {status === "OCCUPIED" && (
                                             <div className="car">
-                                                <img src={BlueCarTopView} alt="Xe đang đỗ" />
+                                                <img
+                                                    src={BlueCarTopView}
+                                                    alt="Xe đang đỗ"
+                                                />
                                             </div>
                                         )}
 
                                         {status === "AVAILABLE" && animation === "car-out" && (
                                             <div className="car car--ghost">
-                                                <img src={BlueCarTopView} alt="Xe rời khỏi ô đỗ" />
+                                                <img
+                                                    src={BlueCarTopView}
+                                                    alt="Xe rời khỏi ô đỗ"
+                                                />
                                             </div>
                                         )}
 
                                         {status === "AVAILABLE" && animation !== "car-out" && (
-                                        <div className="empty-slot">
-                                            <span>Trống</span>
-                                        </div>
+                                            <div className="empty-slot">
+                                                <span>Trống</span>
+                                            </div>
                                         )}
 
                                         {status === "MAINTAIN" && (
-                                        <div className="maintenance-box">
-                                            <div className="maintenance-triangle">!</div>
-                                            <p>Đang bảo trì</p>
-                                        </div>
+                                            <div className="maintenance-box">
+                                                <div className="maintenance-triangle">!</div>
+                                                <p>Đang bảo trì</p>
+                                            </div>
                                         )}
                                     </div>
 
@@ -472,55 +560,55 @@ const ParkingLotStatus = () => {
                         })}
 
                         {!activeLotDetail && (
-                        <div className="board-empty">
-                            <div className="board-loader" />
-                            <p>Đang tải trạng thái bãi đỗ...</p>
-                        </div>
+                            <div className="board-empty">
+                                <div className="board-loader" />
+                                <p>Đang tải trạng thái bãi đỗ...</p>
+                            </div>
                         )}
                     </div>
                 </section>
             </main>
         </div>
     );
-    };
+};
 
-    const SummaryItem = ({
-        label,
-        value,
-        total,
-        type,
-    }: {
-        label: string;
-        value: number;
-        total: number;
-        type: "available" | "occupied" | "maintain";
-    }) => {
-        return (
-            <div className={`summary-item summary-item--${type}`}>
-                <p>{label}</p>
-                <strong>
-                    {value}/{total}
-                </strong>
-            </div>
-        );
-    };
+const SummaryItem = ({
+    label,
+    value,
+    total,
+    type,
+}: {
+    label: string;
+    value: number;
+    total: number;
+    type: "available" | "occupied" | "maintain";
+}) => {
+    return (
+        <div className={`summary-item summary-item--${type}`}>
+            <p>{label}</p>
+            <strong>
+                {value}/{total}
+            </strong>
+        </div>
+    );
+};
 
-    const CircularProgress = ({ percent }: { percent: number }) => {
-        const progressAngle = `${percent * 3.6}deg`;
+const CircularProgress = ({ percent }: { percent: number }) => {
+    const progressAngle = `${percent * 3.6}deg`;
 
-        return (
-            <div
-                className="circle-progress"
-                style={{
-                    background: `radial-gradient(closest-side, #fff 72%, transparent 73%), conic-gradient(currentColor ${progressAngle}, rgba(23, 50, 77, 0.08) 0)`,
-                }}
-            >
-                <span>{percent}%</span>
-            </div>
-        );
-    };
+    return (
+        <div
+            className="circle-progress"
+            style={{
+                background: `radial-gradient(closest-side, #fff 72%, transparent 73%), conic-gradient(currentColor ${progressAngle}, rgba(23, 50, 77, 0.08) 0)`,
+            }}
+        >
+            <span>{percent}%</span>
+        </div>
+    );
+};
 
-    const useCurrentTime = () => {
+const useCurrentTime = () => {
     const [date, setDate] = useState(new Date());
 
     useEffect(() => {
@@ -547,22 +635,22 @@ const ParkingLotStatus = () => {
     };
 };
 
-    const RefreshIcon = () => (
-        <svg viewBox="0 0 24 24" fill="none">
-            <path
-                d="M21 12a9 9 0 0 1-15.2 6.5M3 12A9 9 0 0 1 18.2 5.5"
-                stroke="currentColor"
-                strokeWidth="2.4"
-                strokeLinecap="round"
-            />
-            <path
-                d="M6 19H2v-4M18 5h4v4"
-                stroke="currentColor"
-                strokeWidth="2.4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-            />
-        </svg>
-    );
+const RefreshIcon = () => (
+    <svg viewBox="0 0 24 24" fill="none">
+        <path
+            d="M21 12a9 9 0 0 1-15.2 6.5M3 12A9 9 0 0 1 18.2 5.5"
+            stroke="currentColor"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+        />
+        <path
+            d="M6 19H2v-4M18 5h4v4"
+            stroke="currentColor"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        />
+    </svg>
+);
 
-    export default ParkingLotStatus;
+export default ParkingLotStatus;
