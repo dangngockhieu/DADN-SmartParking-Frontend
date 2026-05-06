@@ -8,10 +8,18 @@ import ResetVerify from './pages/auth/ResetVerify'
 import Map from './pages/Map'
 import ParkingSession from './pages/ParkingSession'
 import ChangePassword from './pages/ChangePassword'
+import MyRfidCardStatusPage from './pages/MyRfidCardStatusPage'
+import { Navigate } from 'react-router-dom'
+import DashboardPage from './pages/admin/DashboardPage'
+import RfidCardManagementPage from './pages/admin/RfidCardManagementPage'
+import ManageUsers from './pages/admin/ManageUsers'
+import ManageParkingLots from './pages/admin/ManageParkingLots'
+import ManageDevices from './pages/admin/ManageDevices'
 import ErrorPage from './pages/Error'
 import AuthLayout from './layouts/AuthLayouts'
 import MainLayout from './layouts/MainLayouts'
 import RequireAuth from './layouts/RequireAuth'
+import RequireRole from './layouts/RequireRole'
 
 const router = createBrowserRouter([
   {
@@ -31,6 +39,49 @@ const router = createBrowserRouter([
       { path: '/map', element: <Map /> },
       { path: '/parking-session', element: <ParkingSession /> },
       { path: '/change-password', element: <ChangePassword /> },
+      { path: '/my-cards', element: <MyRfidCardStatusPage /> },
+      { path: '/my-card', element: <Navigate to="/my-cards" replace /> },
+      { path: '/my-rfid-card', element: <Navigate to="/my-cards" replace /> },
+      {
+        path: '/manage-users',
+        element: (
+          <RequireRole allowedRoles={['ADMIN']}>
+            <ManageUsers />
+          </RequireRole>
+        ),
+      },
+      {
+        path: '/manage-parking-lots',
+        element: (
+          <RequireRole allowedRoles={['ADMIN']}>
+            <ManageParkingLots />
+          </RequireRole>
+        ),
+      },
+      {
+        path: '/manage-iot-devices',
+        element: (
+          <RequireRole allowedRoles={['ADMIN']}>
+            <ManageDevices />
+          </RequireRole>
+        ),
+      },
+      {
+        path: '/admin/dashboard',
+        element: (
+          <RequireRole allowedRoles={['ADMIN', 'MANAGER']}>
+            <DashboardPage />
+          </RequireRole>
+        ),
+      },
+      {
+        path: '/admin/rfid-cards',
+        element: (
+          <RequireRole allowedRoles={['ADMIN']}>
+            <RfidCardManagementPage />
+          </RequireRole>
+        ),
+      },
     ]
   },
   {

@@ -4,11 +4,14 @@ import { ParkingMapGrid } from '../components/map-page/ParkingMapGrid'
 import { logout } from '../services/authService'
 import { getParkingLotById, getParkingLots, updateParkingSlotStatus } from '../services/mapService'
 import webTransport from '../services/webTransport'
+import DashboardIcon from '../assets/MapPage/DashboardIcon.svg'
+import ReloadIcon from '../assets/MapPage/ReloadIcon.svg'
 import {
 	applyRealtimeSlotUpdate,
 	calculateSlotStats,
 	createParkingSlotViews,
 } from '../utils/mapSlotHelpers'
+import { getIoTDevices } from '../services/adminService'
 import '../styles/map-page.css'
 
 const dayNames = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7']
@@ -79,7 +82,23 @@ function Map() {
 			}
 
 			// create new views and preserve loadedAt for unchanged slots so animations only run for changed ones
-			const newViews = createParkingSlotViews(parkingLot.slots ?? [])
+			// fetch device metadata (name) to show friendly device name on each slot
+			let devicesMap = {}
+			try {
+				const devicesResp = adminEnabled ? await getIoTDevices(parkingLot.id) : null
+				const devices = devicesResp?.data?.data ?? []
+				devices.forEach((d) => {
+					if (d?.mac_address) devicesMap[d.mac_address] = d.device_name || null
+				})
+			} catch (err) {
+				// ignore device fetch errors - fallback to showing MAC
+				devicesMap = {}
+			}
+
+			const newViews = createParkingSlotViews(parkingLot.slots ?? []).map((v) => ({
+				...v,
+				device_name: devicesMap[v.device_mac] ?? null,
+			}))
 			const merged = newViews.map((nv) => {
 				const prev = slotViews.find((s) => s.id === nv.id)
 				if (prev) {
@@ -280,16 +299,35 @@ function Map() {
 				>
 					<span className="material-icons setting-btn">settings</span>
 				</button>
-				<button type="button" className="corner-btn auth-only">
+				{adminEnabled ? (
+					<button type="button" className="corner-btn auth-only" onClick={() => navigate('/admin/dashboard')}>
 					<img
 						className="dashboard-btn"
-						src="../src/assets/MapPage/DashboardIcon.svg"
+						src={DashboardIcon}
 						alt="Dashboard"
 					/>
 				</button>
-				<button type="button" className="corner-btn auth-only">
-					<span className="material-icons card-btn">credit_card</span>
-				</button>
+				) : null}
+				{adminEnabled ? (
+				<>
+					<button
+						type="button"
+						className="corner-btn auth-only"
+						onClick={() => navigate('/admin/rfid-cards')}
+					>
+						<span className="material-icons card-btn">credit_card</span>
+					</button>
+				</>
+				) : 
+				<>
+					<button
+						type="button"
+						className="corner-btn auth-only"
+						onClick={() => navigate('/my-cards')}
+					>
+						<span className="material-icons card-btn">credit_card</span>
+					</button>
+				</>}
 				<button 
 					type="button" 
 					className="corner-btn auth-only"
@@ -347,7 +385,7 @@ function Map() {
 			>
 				<img
 					className={isReloading ? 'spinning-icon-clockwise' : ''}
-					src="../src/assets/MapPage/ReloadIcon.svg"
+					src={ReloadIcon}
 					alt="Reload"
 				/>
 			</button>
@@ -362,6 +400,20 @@ function Map() {
 				<button className="sidebar-btn" type="button">
 					<Link to="/parking-session">Lịch sử gửi xe</Link>
 				</button>
+				{adminEnabled? (
+				<>
+					<button className="sidebar-btn" type="button">
+						<Link to="/manage-users">Quản lý người dùng</Link>
+					</button>
+					
+					<button className="sidebar-btn" type="button">
+						<Link to="/manage-parking-lots">Quản lý bãi đỗ xe</Link>
+					</button>
+					<button className="sidebar-btn" type="button">
+						<Link to="/manage-iot-devices">Quản lý thiết bị</Link>
+					</button>
+				</>
+				): null}
 				<button className="sidebar-btn" type="button">
 					<Link to="/change-password">Đặt lại mật khẩu</Link>
 				</button>
@@ -376,110 +428,3 @@ function Map() {
 
 export default Map
 
-
-/*
-respone của getParkingLots
-{
-    "success": true,
-    "message": "Lấy danh sách bãi đỗ thành công",
-    "data": [
-        {
-            "id": 1,
-            "name": "A",
-            "location": "Main Area"
-        }
-    ]
-}
-
-
-response của getParkingLotById
-{
-    "success": true,
-    "message": "Lấy thông tin bãi đỗ thành công",
-    "data": {
-        "id": 1,
-        "name": "A",
-        "location": "Main Area",
-        "slots": [
-            {
-                "id": 1,
-                "name": "A1",
-                "status": "AVAILABLE",
-                "device_mac": "SENSOR_A_001",
-                "port_number": 1
-            },
-            {
-                "id": 2,
-                "name": "A2",
-                "status": "AVAILABLE",
-                "device_mac": "SENSOR_A_001",
-                "port_number": 2
-            },
-            {
-                "id": 3,
-                "name": "A3",
-                "status": "AVAILABLE",
-                "device_mac": "SENSOR_A_001",
-                "port_number": 3
-            },
-            {
-                "id": 4,
-                "name": "A4",
-                "status": "AVAILABLE",
-                "device_mac": "SENSOR_A_001",
-                "port_number": 4
-            },
-            {
-                "id": 5,
-                "name": "A5",
-                "status": "AVAILABLE",
-                "device_mac": "SENSOR_A_001",
-                "port_number": 5
-            },
-            {
-                "id": 6,
-                "name": "A6",
-                "status": "AVAILABLE",
-                "device_mac": "SENSOR_A_001",
-                "port_number": 6
-            },
-            {
-                "id": 7,
-                "name": "A7",
-                "status": "AVAILABLE",
-                "device_mac": "SENSOR_A_001",
-                "port_number": 7
-            },
-            {
-                "id": 8,
-                "name": "A8",
-                "status": "AVAILABLE",
-                "device_mac": "SENSOR_A_001",
-                "port_number": 8
-            }
-        ],
-        "stats": {
-            "total": 8,
-            "available": 8,
-            "occupied": 0,
-            "maintain": 0
-        }
-    }
-}
-
-
-response của updateSlotStatus
-{
-    "success": true,
-    "message": "Cập nhật trạng thái thành công",
-    "data": {
-        "changed": true,
-        "id": 2,
-        "lot_id": 1,
-        "name": "A2",
-        "message": "Cập nhật trạng thái thành công",
-        "old_status": "AVAILABLE",
-        "new_status": "OCCUPIED"
-    }
-}
-*/

@@ -18,6 +18,9 @@ export const createParkingSlotViews = (slots = []) => {
 			name: typeof slot?.name === 'string' ? slot.name : `A${index + 1}`,
 			orientation: portNumber <= 4 ? 'down' : 'up',
 			status: toVisualStatus(slot?.status),
+			// preserve device info from backend so UI can render device label
+			device_mac: slot?.device_mac ?? null,
+			port_number: slot?.port_number ?? portNumber,
 			// timestamp used to detect initial load vs subsequent realtime updates
 			loadedAt: Date.now(),
 			isUpdating: false,

@@ -108,6 +108,14 @@ export function ParkingSlotCard({
                     </button>
                 </div>
             ) : null}
+            {/* Thiết bị gắn trên slot: hiển thị ở bottom */}
+            {adminEnabled?(
+            <>
+                <div className="slot-device-label" aria-hidden="true">
+                    {( slot.device_mac || slot.device_name || '---') + (slot.port_number ? `:${slot.port_number}` : '')}
+                </div>
+            </>
+            ) : null}
         </div>
     )
 }
