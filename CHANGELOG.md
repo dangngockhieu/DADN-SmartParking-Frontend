@@ -21,3 +21,4 @@
 - Improve performance of slot list rendering
 - Fix session timeout handling
 - Update icons for status indicators
+- Add unit tests for utility functions
