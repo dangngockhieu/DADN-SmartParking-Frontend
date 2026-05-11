@@ -24,3 +24,4 @@
 - Add unit tests for utility functions
 - Fix incorrect currency formatting
 - Improve UX for search filter
+- Update README with setup instructions
