@@ -23,3 +23,4 @@
 - Update icons for status indicators
 - Add unit tests for utility functions
 - Fix incorrect currency formatting
+- Improve UX for search filter
