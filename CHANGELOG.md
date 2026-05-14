@@ -26,3 +26,4 @@
 - Improve UX for search filter
 - Update README with setup instructions
 - Fix broken image link in profile page
+- Add debounce to search input
