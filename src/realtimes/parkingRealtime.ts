@@ -21,13 +21,30 @@ export const connectParkingRealtime = (
     url.searchParams.set("lotId", String(lotId));
 
     const unsubscribe = webTransportClient.onMessage((message) => {
-        if (message.event !== "SLOT_STATUS_CHANGE") return;
+        // Hỗ trợ cả single event (từ admin update) và batch event (từ sensor worker)
+        if (message.event === "SLOT_STATUS_CHANGE") {
+            const realtimeMessage = message as ParkingRealtimeMessage & { event: "SLOT_STATUS_CHANGE" };
 
-        const realtimeMessage = message as ParkingRealtimeMessage;
+            if (realtimeMessage.data.lot_id !== lotId) return;
 
-        if (realtimeMessage.data.lot_id !== lotId) return;
+            handler(realtimeMessage);
+        }
 
-        handler(realtimeMessage);
+        if (message.event === "SLOT_STATUS_CHANGE_BATCH") {
+            const realtimeMessage = message as ParkingRealtimeMessage & { event: "SLOT_STATUS_CHANGE_BATCH" };
+
+            // Filter: chỉ xử lý events thuộc lot đang xem
+            const relevantData = realtimeMessage.data.filter(
+                (item) => item.lot_id === lotId
+            );
+
+            if (relevantData.length === 0) return;
+
+            handler({
+                event: "SLOT_STATUS_CHANGE_BATCH",
+                data: relevantData,
+            });
+        }
     });
 
     webTransportClient.connect(url.toString()).catch((error) => {
