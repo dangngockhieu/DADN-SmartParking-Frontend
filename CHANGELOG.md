@@ -29,3 +29,4 @@
 - Add debounce to search input
 - Improve state management for cart
 - Fix minor CSS alignment issue
+- Update copyright year in footer
