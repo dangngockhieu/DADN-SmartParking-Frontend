@@ -28,3 +28,4 @@
 - Fix broken image link in profile page
 - Add debounce to search input
 - Improve state management for cart
+- Fix minor CSS alignment issue
