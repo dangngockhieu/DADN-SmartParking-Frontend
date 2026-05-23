@@ -60,10 +60,6 @@ const ModelCreateCard = (props: ModelCreateCardProps) => {
   };
 
   const handleSubmit = async () => {
-    if (!userId) {
-      toast.error("Vui lòng chọn user hợp lệ");
-      return;
-    }
 
     if (!cardUid) {
       toast.error("Vui lòng nhập mã thẻ");
